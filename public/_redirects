@@ -1,0 +1,10 @@
+# Redirect www to non-www
+http://www.crsetsolutions.com/* https://crsetsolutions.com/:splat 301!
+https://www.crsetsolutions.com/* https://crsetsolutions.com/:splat 301!
+
+# Redirect HTTP to HTTPS
+http://crsetsolutions.com/* https://crsetsolutions.com/:splat 301!
+
+# Handle 404 errors
+/* /index.html 200
+

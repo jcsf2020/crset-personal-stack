@@ -1,0 +1,25 @@
+:root{
+  --bg:#0e1422;
+  --surface:#121a2b;
+  --text:#E6EDF7;
+  --muted:#9FB4D0;
+  --brand:#5CC8FF;
+  --brand-strong:#1F8BFF;
+  --accent:#F59E0B;
+  --ring:rgba(255,255,255,.08);
+  --card: var(--surface);
+  --text-strong: var(--text);
+}
+
+/* aplica tema base */
+html,body{
+  color:var(--text);
+  background:
+    radial-gradient(1200px 500px at -10% -10%, #142338 0%, transparent 60%),
+    radial-gradient(1200px 500px at 110% 10%, #2a1420 0%, transparent 60%),
+    var(--bg);
+}
+
+/* utilitários simples */
+.bg-surface{ background-color:var(--surface); }
+.text-muted{ color:var(--muted); }

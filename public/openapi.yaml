@@ -1,0 +1,450 @@
+openapi: 3.0.3
+info:
+  title: CRSET Solutions API
+  description: |
+    API completa para integracao com a plataforma CRSET Solutions.
+    
+    Inclui endpoints para:
+    - Chat AGI (OpenAI GPT-4o-mini)
+    - RAG (Retrieval-Augmented Generation)
+    - Formulario de contacto
+    - Autenticacao e status
+    
+    **Base URL:** https://crsetsolutions.com
+  version: 1.0.0
+  contact:
+    name: CRSET Solutions
+    email: crsetsolutions@gmail.com
+    url: https://crsetsolutions.com
+  license:
+    name: Proprietary
+    url: https://crsetsolutions.com/termos
+
+servers:
+  - url: https://crsetsolutions.com
+    description: Producao
+  - url: http://localhost:3000
+    description: Desenvolvimento local
+
+tags:
+  - name: AGI
+    description: Endpoints de Inteligencia Artificial Generativa
+  - name: RAG
+    description: Retrieval-Augmented Generation
+  - name: Auth
+    description: Autenticacao e autorizacao
+  - name: Contact
+    description: Formulario de contacto
+  - name: Debug
+    description: Endpoints de debug e monitorizacao
+
+paths:
+  /api/agi/status:
+    get:
+      summary: Status do backend AGI
+      description: Retorna informacoes sobre o estado do backend AGI, incluindo provider, modelo e configuracoes.
+      tags:
+        - AGI
+      parameters:
+        - name: debug
+          in: query
+          description: Ativar modo debug para retornar variaveis de ambiente
+          required: false
+          schema:
+            type: integer
+            enum: [0, 1]
+            default: 0
+      responses:
+        '200':
+          description: Status retornado com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    example: true
+                  backend:
+                    type: string
+                    enum: [openai, groq]
+                    example: openai
+                  gated:
+                    type: boolean
+                    example: false
+                  env:
+                    type: object
+                    description: Variaveis de ambiente (apenas em modo debug)
+                    properties:
+                      AGI_OPENAI_BASE_URL:
+                        type: string
+                      OPENAI_BASE_URL:
+                        type: string
+                      HAS_AGI_OPENAI_KEY:
+                        type: boolean
+                      HAS_OPENAI_API_KEY:
+                        type: boolean
+                      NODE_ENV:
+                        type: string
+                      VERCEL_ENV:
+                        type: string
+
+  /api/agi/chat:
+    post:
+      summary: Chat com AGI
+      description: Envia uma mensagem para o modelo GPT-4o-mini e recebe uma resposta.
+      tags:
+        - AGI
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - message
+              properties:
+                message:
+                  type: string
+                  description: Mensagem do utilizador
+                  example: "Ola, como posso criar um site profissional?"
+                strict:
+                  type: boolean
+                  description: Desativar persona (modo raw)
+                  default: false
+                mode:
+                  type: string
+                  enum: [normal, raw]
+                  description: Modo de resposta
+                  default: normal
+      responses:
+        '200':
+          description: Resposta gerada com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    example: true
+                  reply:
+                    type: string
+                    example: "Ola! Para criar um site profissional..."
+                  meta:
+                    type: object
+                    properties:
+                      backend:
+                        type: string
+                        example: openai
+                      upstream_base:
+                        type: string
+                        example: https://api.openai.com/v1
+                      model:
+                        type: string
+                        example: gpt-4o-mini
+                      agent:
+                        type: string
+                        example: boris
+        '403':
+          description: Autenticacao necessaria
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '400':
+          description: Requisicao invalida
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/test-llm:
+    get:
+      summary: Teste direto do LLM
+      description: Endpoint de teste para validar a integracao com OpenAI.
+      tags:
+        - AGI
+      responses:
+        '200':
+          description: Teste executado com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    example: true
+                  reply:
+                    type: string
+                    example: "Hello! How can I assist you today?"
+                  model:
+                    type: string
+                    example: gpt-4o-mini-2024-07-18
+                  usage:
+                    type: object
+                    properties:
+                      prompt_tokens:
+                        type: integer
+                        example: 8
+                      completion_tokens:
+                        type: integer
+                        example: 9
+                      total_tokens:
+                        type: integer
+                        example: 17
+                  duration_ms:
+                    type: integer
+                    example: 1832
+
+  /api/rag/query:
+    post:
+      summary: Query RAG (Retrieval-Augmented Generation)
+      description: Procura documentos semanticamente similares usando embeddings.
+      tags:
+        - RAG
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - message
+              properties:
+                message:
+                  type: string
+                  description: Query de pesquisa
+                  example: "Como funciona o servico Essential?"
+                match_count:
+                  type: integer
+                  description: Numero maximo de resultados
+                  default: 3
+                  minimum: 1
+                  maximum: 10
+                similarity_threshold:
+                  type: number
+                  format: float
+                  description: Threshold de similaridade (0-1)
+                  default: 0.2
+                  minimum: 0
+                  maximum: 1
+      responses:
+        '200':
+          description: Query executada com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    example: true
+                  dim:
+                    type: integer
+                    description: Dimensao do embedding
+                    example: 1536
+                  match_count:
+                    type: integer
+                    example: 3
+                  similarity_threshold:
+                    type: number
+                    example: 0.2
+                  matches:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          example: 45
+                        content:
+                          type: string
+                          example: "hello world"
+                        metadata:
+                          type: object
+                        similarity:
+                          type: number
+                          format: float
+                          example: 0.250659644603736
+        '400':
+          description: Requisicao invalida
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Erro interno
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/flags/chat/login:
+    post:
+      summary: Login do chat
+      description: Autentica utilizador para acesso ao chat AGI.
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - password
+              properties:
+                password:
+                  type: string
+                  format: password
+                  description: Password de acesso ao chat
+                  example: "Financeflow2025"
+      responses:
+        '200':
+          description: Login bem-sucedido
+          headers:
+            Set-Cookie:
+              description: Cookie de autenticacao
+              schema:
+                type: string
+                example: chat_flag=eyJhbGc...; Path=/; HttpOnly; Secure; SameSite=Strict
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    example: true
+                  allowed:
+                    type: boolean
+                    example: true
+                  reason:
+                    type: string
+                    example: login_ok
+        '401':
+          description: Password incorreta
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Servidor nao configurado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/contact:
+    post:
+      summary: Enviar formulario de contacto
+      description: Envia um lead atraves do formulario de contacto.
+      tags:
+        - Contact
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - email
+                - message
+              properties:
+                name:
+                  type: string
+                  description: Nome do contacto
+                  example: "Joao Silva"
+                email:
+                  type: string
+                  format: email
+                  description: Email do contacto
+                  example: "joao.silva@example.com"
+                message:
+                  type: string
+                  description: Mensagem
+                  example: "Gostaria de saber mais sobre os servicos."
+                utm:
+                  type: object
+                  description: Parametros UTM para tracking
+                  properties:
+                    source:
+                      type: string
+                      example: "google"
+                    medium:
+                      type: string
+                      example: "cpc"
+                    campaign:
+                      type: string
+                      example: "servicos"
+                    content:
+                      type: string
+                      example: "essential"
+      responses:
+        '200':
+          description: Mensagem enviada com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    example: true
+        '400':
+          description: Dados invalidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/debug/sentry:
+    get:
+      summary: Testar integracao Sentry
+      description: Gera um evento de teste no Sentry.
+      tags:
+        - Debug
+      responses:
+        '200':
+          description: Evento gerado com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    example: true
+                  eventId:
+                    type: string
+                    example: "2555e9a28ff04332a381e2a38c4a27af"
+
+components:
+  schemas:
+    Error:
+      type: object
+      properties:
+        ok:
+          type: boolean
+          example: false
+        error:
+          type: string
+          example: "bad_request"
+        message:
+          type: string
+          example: "Missing required field: message"
+        reason:
+          type: string
+          description: Razao especifica do erro (opcional)
+
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: chat_flag
+      description: Cookie de autenticacao JWT para acesso ao chat AGI

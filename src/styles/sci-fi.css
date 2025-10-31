@@ -1,0 +1,99 @@
+/* ===== CRSET Sci-Fi Utilities (safe, no overrides) ===== */
+:root{
+  /* Accents */
+  --accent-1:#22d3ee;        /* neon cyan */
+  --accent-2:#a78bfa;        /* neon violet */
+  --accent-3:#67e8f9;        /* cyan light */
+  --glow: 0 0 24px var(--accent-1), 0 0 48px color-mix(in oklab, var(--accent-1) 50%, transparent);
+
+  /* Neutrals (slate-ish) */
+  --bg-0:#0b1220;
+  --bg-1:#0f172a;
+  --bg-2:#111827;
+  --card:#0b1328cc;          /* glass base */
+  --stroke:rgba(255,255,255,.08);
+  --text:#e5e7eb;
+  --text-dim:#b6c2d4;
+
+  /* Radii & blur */
+  --r-xl: 1.25rem;
+  --blur: 14px;
+}
+
+/* --- glass card --- */
+.crs-glass{
+  background: color-mix(in oklab, var(--card) 92%, transparent);
+  border: 1px solid var(--stroke);
+  border-radius: var(--r-xl);
+  backdrop-filter: blur(var(--blur)) saturate(120%);
+  -webkit-backdrop-filter: blur(var(--blur)) saturate(120%);
+  box-shadow: 0 1px 0 rgba(255,255,255,.06) inset, 0 10px 30px rgba(2,8,23,.35);
+}
+
+/* --- neon outline hover --- */
+.crs-neon:hover, .crs-neon:focus-visible{
+  outline: 2px solid color-mix(in oklab, var(--accel, var(--accent-1)) 90%, white 10%);
+  box-shadow: var(--glow);
+}
+
+/* --- gradient beam background (hero safe) --- */
+.crs-beam{
+  position: relative;
+  isolation: isolate;
+  background:
+    radial-gradient(1200px 300px at 50% -10%, color-mix(in oklab, var(--accent-2) 20%, transparent), transparent 60%),
+    radial-gradient(900px 200px at 20% -10%, color-mix(in oklab, var(--accent-1) 18%, transparent), transparent 70%),
+    linear-gradient(180deg, color-mix(in oklab, #0b1220 90%, black 10%), var(--bg-1));
+}
+/* --- subtle scanlines (1–2%) --- */
+.crs-scanlines{ position:relative; }
+.crs-scanlines::after{
+  content:""; position:absolute; inset:0; pointer-events:none;
+  background-image:repeating-linear-gradient(
+    to bottom,
+    rgba(255,255,255,.015) 0 2px,
+    transparent 2px 4px
+  );
+  mix-blend-mode:soft-light;
+}
+
+/* --- grid background (lightweight) --- */
+.crs-grid{
+  --grid-c: rgba(148,163,184,.18);
+  background:
+    linear-gradient(to right, var(--grid-c) 1px, transparent 1px) 0 0/40px 40px,
+    linear-gradient(to bottom, var(--grid-c) 1px, transparent 1px) 0 0/40px 40px;
+}
+
+/* --- hologram card wrapper --- */
+.crs-holo{
+  position:relative;
+  border-radius:var(--r-xl);
+}
+.crs-holo::before{
+  content:""; position:absolute; inset:0; border-radius:inherit; pointer-events:none;
+  background:
+    conic-gradient(from 180deg at 50% 50%, color-mix(in oklab, var(--accent-1) 25%, transparent), transparent 30%),
+    radial-gradient(600px 200px at 20% -10%, color-mix(in oklab, var(--accent-2) 12%, transparent), transparent 70%);
+  opacity:.35; mix-blend-mode:screen; filter:saturate(120%);
+}
+
+/* --- CTA button (neon, focus AA) --- */
+.crs-cta{
+  display:inline-flex; align-items:center; gap:.5rem;
+  padding:.6rem 1rem; border-radius:.875rem;
+  background: linear-gradient(180deg, color-mix(in oklab, var(--accent-1) 22%, #0b1220), #0b1220);
+  color:var(--text); border:1px solid color-mix(in oklab, var(--accent-1) 50%, transparent);
+  box-shadow: 0 0 0 0 rgba(34,211,238,.45);
+  transition: box-shadow .25s ease, transform .25s ease, background .25s ease;
+}
+.crs-cta:hover{ box-shadow: 0 0 24px 4px rgba(34,211,238,.35); transform: translateY(-1px); }
+.crs-cta:focus-visible{
+  outline:2px solid var(--accent-1);
+  outline-offset:2px;
+}
+
+/* --- motion safety --- */
+@media (prefers-reduced-motion: reduce){
+  *, *::before, *::after{ animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}
