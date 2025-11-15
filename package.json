@@ -1,7 +1,7 @@
 {
-  "name": "crset-solutions-frontend",
-  "version": "1.0.0",
-  "description": "CRSET Solutions - Frontend Next.js com mascotes Boris, Laya e Irina",
+  "name": "crset-personal-stack",
+  "version": "2.0.0",
+  "description": "FinanceFlow - Personal dashboard with crypto, finance, domains, business, and productivity integrations",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -78,7 +78,7 @@
     "laya",
     "irina"
   ],
-  "author": "CRSET Solutions",
+  "author": "Joao Fonseca",
   "license": "MIT",
   "browserslist": [
     "> 0.5%",
